@@ -121,7 +121,7 @@ class PromptGenMiddleware(BaseMiddleware):
         sent = None
         voice_engine = data['voice_engine']
         try:
-            sent = await event.reply('💭')
+            sent = await event.reply(italic('Downloading message...'))
             prompts: list[Union[str, Image]] = []
             tasks: list[asyncio.Task] = []
 
