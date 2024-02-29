@@ -69,10 +69,12 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                     await message.reply_voice(voice=reply.media)
                 elif sent:
                     response = response + reply
-                    error = None
-                    if sent:
-                        # escape() converts Markdown to Telegram specific Markdown v2 format
-                        sent = await sent.edit_text(text=escape(response))
+                    chunks = [response[i:i+4096] for i in range(0, len(response), 4096)]
+                    for chunk in chunks:
+                        if sent:
+                            sent = await sent.edit_text(text=escape(chunk))
+                        else:
+                            sent = await message.reply(text=escape(chunk))
             except TelegramBadRequest as e:
                 error = e
                 # Ignore intermediate errors
