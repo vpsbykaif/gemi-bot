@@ -47,9 +47,9 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
     try:
         # Send a reply to the received message
         if sent:
-            await sent.edit_text(text=italic("Thinking..."))
+            await sent.edit_text(text="💭")
         else:
-            sent = await message.reply(text=italic('Thinking...'))
+            sent = await message.reply(text="💭")
 
         chat: Chat = await repo.get_chat_session(message.chat.id)
         
