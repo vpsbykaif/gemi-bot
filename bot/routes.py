@@ -3,7 +3,7 @@ from PIL.Image import Image
 from typing import Any, Dict, Union
 from aiogram import Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message, InputMediaAudio, ChatActions
+from aiogram.types import Message, InputMediaAudio
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.utils.markdown import bold, italic, pre
 
@@ -29,10 +29,13 @@ async def command_start_handler(message: Message) -> None:
     """
     This handler receives messages with `/start` command
     """
-    # Send a typing action before sending the actual response
-    await message.answer_chat_action(action=ChatActions.TYPING)
-    # Send a greeting message
+    # Most event objects have aliases for API methods that can be called in events' context
+    # For example if you want to answer to incoming message you can use `message.answer(...)` alias
+    # and the target chat will be passed to :ref:`aiogram.methods.send_message.SendMessage`
+    # method automatically or call API method directly via
+    # Bot instance: `bot.send_message(chat_id=message.chat.id, ...)`
     await message.answer(f"Hello, {bold(message.from_user.full_name)}\!")
+
 
 @message_router.message()
 async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str, Image]] = [], sent: Message | None = None) -> None:
@@ -42,10 +45,12 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
     By default, message handler will handle all message types (like a text, photo, sticker etc.)
     """
     try:
-        # Send a typing action before processing the message
-        await message.answer_chat_action(action=ChatActions.TYPING)
-        # Send a reply to the received message with a thinking emoji
-        sent = await message.reply(text='💭')
+        # Send a reply to the received message
+        if sent:
+            await sent.edit_text(text="💭")
+        else:
+            sent = await message.reply(text="💭")
+
         chat: Chat = await repo.get_chat_session(message.chat.id)
         
         response = ""
