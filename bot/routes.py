@@ -69,21 +69,28 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                     await message.reply_voice(voice=reply.media)
                 elif sent:
                     response = response + reply
-                    chunks = [response[i:i+4096] for i in range(0, len(response), 4096)]
                     if len(response) > 4096:
                         if sent:
                             await sent.edit_text(text=escape(response[:4096]))
+                            response = response[4096:]  # Remove the part sent in the current message
                         else:
                             sent = await message.reply(text=escape(response[:4096]))
-                        # Send subsequent chunks in separate messages
-                        for chunk in [response[i:i+4096] for i in range(4096, len(response), 4096)]:
-                            await message.reply(text=escape(chunk))
-                        break  # Exit loop after sending all chunks
+                            response = response[4096:]  # Remove the part sent in the current message
+                            
+                        # If the response still exceeds the limit, send the remaining message in a file
+                        if len(response) > 4096:
+                            await message.answer_document(
+                                document=InputFile(io.BytesIO(response.encode()), filename="response.md"),
+                                caption="The response is too long and has been sent in this Markdown file."
+                            )
+                            response = ""  # Clear response for the next message
                     else:
                         if sent:
                             sent = await sent.edit_text(text=escape(response))
+                            response = ""  # Clear response for the next message
                         else:
                             sent = await message.reply(text=escape(response))
+                            response = ""  # Clear response for the next message
             except TelegramBadRequest as e:
                 error = e
                 # Ignore intermediate errors
