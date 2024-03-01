@@ -69,23 +69,20 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                     await message.reply_voice(voice=reply.media)
                 elif sent:
                     response = response + reply
-                    if len(response) > 4096:
+                                        if len(response) > 4096:
                         if sent:
-                            await sent.edit_text(text=escape(response))
+                            await sent.edit_text(text=escape(response[:4096]))
                         else:
-                            sent = await message.reply(text=escape(response))
-                        # Send the whole response in an MD file with an appropriate caption
-                        await message.answer_document(
-                            document=InputFile(io.BytesIO(response.encode()), filename="response.md"),
-                            caption="The response is too long and has been sent in this Markdown file."
-                        )
-                        response = ""  # Clear response for the next message
+                            sent = await message.reply(text=escape(response[:4096]))
+                        # Send subsequent chunks in separate messages
+                        for chunk in [response[i:i+4096] for i in range(4096, len(response), 4096)]:
+                            await message.reply(text=escape(chunk))
+                        break  # Exit loop after sending all chunks
                     else:
                         if sent:
                             sent = await sent.edit_text(text=escape(response))
                         else:
                             sent = await message.reply(text=escape(response))
-            
             except TelegramBadRequest as e:
                 error = e
                 # Ignore intermediate errors
