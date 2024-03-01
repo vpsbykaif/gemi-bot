@@ -70,12 +70,16 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                 elif sent:
                     response = response + reply
                     if len(response) > 4096:
-                        await message.answer_document(
-                            document=InputFile(io.BytesIO(response.encode()), filename="response.md"),
-                            caption="The response is too long and has been sent in this Markdown file."
-                        )
+                        if message.text:
+                            await message.edit_text(text=escape(response))
+                        else:
+                            await message.answer(text=escape(response))
+                        response = ""  # Clear response for the next message
                     else:
-                        await message.answer(text=escape(response))
+                        if message.text:
+                            await message.edit_text(text=escape(response))
+                        else:
+                            await message.answer(text=escape(response))
             except TelegramBadRequest as e:
                 error = e
                 # Ignore intermediate errors
