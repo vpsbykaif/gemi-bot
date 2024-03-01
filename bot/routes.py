@@ -70,11 +70,20 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                 elif sent:
                     response = response + reply
                     chunks = [response[i:i+4096] for i in range(0, len(response), 4096)]
-                    for chunk in chunks:
+                    if len(response) > 4096:
                         if sent:
-                            sent = await sent.edit_text(text=escape(chunk))
+                            await sent.edit_text(text=escape(response[:4096]))
                         else:
-                            sent = await message.reply(text=escape(chunk))
+                            sent = await message.reply(text=escape(response[:4096]))
+                        # Send subsequent chunks in separate messages
+                        for chunk in [response[i:i+4096] for i in range(4096, len(response), 4096)]:
+                            await message.reply(text=escape(chunk))
+                        break  # Exit loop after sending all chunks
+                    else:
+                        if sent:
+                            sent = await sent.edit_text(text=escape(response))
+                        else:
+                            sent = await message.reply(text=escape(response))
             except TelegramBadRequest as e:
                 error = e
                 # Ignore intermediate errors
