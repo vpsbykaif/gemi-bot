@@ -69,7 +69,7 @@ async def echo_handler(message: Message, repo: ChatRepo, prompts: list[Union[str
                     await message.reply_voice(voice=reply.media)
                 elif sent:
                     response = response + reply
-                                        if len(response) > 4096:
+                    if len(response) > 4096:
                         if sent:
                             await sent.edit_text(text=escape(response[:4096]))
                         else:
