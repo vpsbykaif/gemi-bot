@@ -4,6 +4,8 @@ from aiohttp.web import Application, run_app
 import sentry_sdk
 from sentry_sdk.integrations.logging import LoggingIntegration
 from os import getenv
+import dotenv
+dotenv.load_dotenv()
 
 from containers import BotContainer, Configs
 from api.routes import routes
